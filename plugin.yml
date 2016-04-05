@@ -1,0 +1,48 @@
+name: PoleCompass
+main: nl.function1.polepass.Compass
+description: A plugin where you can modify your compass!
+version: 2.0.1
+author: joppiesaus
+website: http://dev.bukkit.org/bukkit-plugins/joppiesaus-pass/
+
+commands:
+  compass:
+     permission: PoleCompass.compass
+     permission-message: You don't have the required permission to set your compass.
+     description: Points your compass to a specific pole!
+     usage: Use /compass help for help.
+  compass help:
+     permission: PoleCompass.compass.help
+     permission-message: You don't have the required permission for this command.
+     description: Views the help of PoleCompass.
+     usage: Use /compass help for help.
+  compass about:
+     permission: PoleCompass.compass.help
+     permission-message: You may not view the PoleCompass about page ;)
+     description: Displays info about PoleCompass
+     usage: /compass about
+  compass pos:
+     permission: PoleCompass.compass.pos
+     permission-message: You don't have the required permission to set your compass.
+     description: Points your compass to the specified position, or your current position if you specify current instead.
+     usage: /compass pos <current> | <x> <y> <z>
+  compass follow:
+     permission: PoleCompass.compass.follow
+     permission-message: You don't have the required permission to follow players with your compass.
+     description: points and follows a player with your compass
+     usage: /compass follow <player>
+  setplayercompass:
+     permission: PoleCompass.setplayercompass
+     permission-message: You don't have the required permission to modify other player's compasses.
+     description: Points someone's compass to a specific pole!
+     usage: Use /compass help for help.
+  setplayercompass pos:
+     permission: PoleCompass.setplayercompass.pos
+     permission-message: You don't have the required permission to set your compass.
+     description: Points the player's compass to the specified position, or the player's current position if you specify current instead.
+     usage: /setplayercompass <player> pos <current> | <x> <y> <z>
+  setplayercompass follow:
+     permission: PoleCompass.setplayercompass.follow
+     permission-message: You don't have the required permission to modify other player's compasses.
+     description: Make someones compass point and follow to a player
+     usage: /setplayercompass <player> follow <player to follow>
