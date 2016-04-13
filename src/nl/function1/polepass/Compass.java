@@ -1,7 +1,7 @@
 package nl.function1.polepass;
 
 /*
- * PoleCompass 2.0.2 - Minecraft Bukkit/Spigot plugin by joppiesaus <job@function1.nl>
+ * PoleCompass 2.0.3 - Minecraft Bukkit/Spigot plugin by joppiesaus <job@function1.nl>
  * License: Public Domain. Do whatever you want. I'd love to hear what you're making with my code, though!
  * 
  * TODO:
@@ -10,9 +10,10 @@ package nl.function1.polepass;
  * CLICK ENTITY TO FOLLOW?
  * 
  * CHANGELOG:
- * Learned that I should, I definitely should, test more. 
- * Fixed not being able to reset bug, the other variant
- * Fixed "<player> is not a valid command or direction" on /setplayercompass
+ * Hopefully finally fixed that stupid bug(your compass will reset no matter what now)
+ * /compass reset no longer sets your compass to your bed if you have one
+ * Added /compass bed, it points the compass to the bed
+ * Added /setplayercompass bed
  */
 
 import java.util.List;
@@ -23,8 +24,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-//import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,7 +31,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.event.Listener;
-//import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 
@@ -91,7 +89,7 @@ public final class Compass extends JavaPlugin implements Listener {
 		if (newData == "") {
 			removeMetadata(p, "compasstrackers", this);
 		} else {
-			newData = newData.substring(newData.length() - 2, newData.length() - 1);
+			newData = newData.substring(0, newData.length() - 2);
 			setMetadata(p, "compasstrackers", newData, this);
 		}
 	}
@@ -126,13 +124,6 @@ public final class Compass extends JavaPlugin implements Listener {
 			}
 			
 			Player p = (Player) sender;
-			Direction toSet = null;
-			
-			/*// a meta data test
-			Metadatable dataff = (Metadatable) p;
-			setMetadata(dataff, "JAMES", "BOND", this);
-			p.sendMessage((String) getMetadata(dataff, "JAMES", this));
-			*/
 			
 			switch (args[0].toLowerCase()) {
 					
@@ -221,41 +212,49 @@ public final class Compass extends JavaPlugin implements Listener {
 					
 				case "n":
 				case "north":
-					toSet = Direction.North;
-					break;
+					p.setCompassTarget(p.getWorld().getBlockAt((int)p.getLocation().getX(), 0, -12550820).getLocation());
+					p.sendMessage("Your compass has been set to the North");
+					return true;
 				
 				case "e":
 				case "east":
-					toSet = Direction.East;
-					break;
+					p.setCompassTarget(p.getWorld().getBlockAt(12550820, 0, (int)p.getLocation().getZ()).getLocation());
+					p.sendMessage("Your compass has been set to the East");
+					return true;
 					
 				case "s":
 				case "south":
-					toSet = Direction.South;
-					break;
+					p.setCompassTarget(p.getWorld().getBlockAt((int)p.getLocation().getX(), 0, 12550820).getLocation());
+					p.sendMessage("Your compass has been set to the South");
+					return true;
 				
 				case "w":
 				case "west":
-					toSet = Direction.West;
-					break;
+					p.setCompassTarget(p.getWorld().getBlockAt(-12550820, 0, (int)p.getLocation().getZ()).getLocation());
+					p.sendMessage("Your compass has been set to the West");
+					return true;
+					
+				case "bed":
+					if (p.getBedSpawnLocation() != null) {
+						p.setCompassTarget(p.getBedSpawnLocation());
+						p.sendMessage("Your compass has been set to your bed's location");
+						return true;
+					} else {
+						p.sendMessage(ChatColor.RED + "You don't have a bed");
+						return false;
+					}
 				
 				case "r":
 				case "reset":
-					toSet = Direction.None;
+				case "default":
+					p.setCompassTarget(p.getWorld().getSpawnLocation());
+					p.sendMessage("Your compass has been set to the world's spawnpoint");
 					removeTrackerFromRequester(p);
-					break;
+					return true;
 					
 				default:
-					
-					break;
-			}
-			
-			if (toSet != null) {
-				setCompassToDirection(p, toSet);
-				return true;
-			} else {
-				p.sendMessage(ChatColor.RED + "\"" + args[0] + "\" is not a valid direction.");
-				return false;
+					p.sendMessage(ChatColor.RED + "\"" + args[0] + "\" is not a valid direction.");
+					return false;
 			}
 		} else if (cmd.getName().equalsIgnoreCase("setplayercompass")) {			
 						
@@ -271,12 +270,12 @@ public final class Compass extends JavaPlugin implements Listener {
 				return false;
 			}
 			
-			Direction toSet = null;
 			
 			switch (args[1].toLowerCase()) {
 			
 				case "help":
-					sender.sendMessage("no");
+					// this is only hit when the first argument is a player
+					sender.sendMessage("/" + cmd.getName().toLowerCase() + " <player> <compass command>. See /compass help");
 					return true;
 				
 				case "f":
@@ -328,42 +327,50 @@ public final class Compass extends JavaPlugin implements Listener {
 					
 				case "n":
 				case "north":
-					toSet = Direction.North;
-					break;
+					target.setCompassTarget(target.getWorld().getBlockAt((int)target.getLocation().getX(), 0, -12550820).getLocation());
+					sender.sendMessage(target.getName() + "'s compass has been set to the North");
+					return true;
 				
 				case "e":
 				case "east":
-					toSet = Direction.East;
-					break;
+					target.setCompassTarget(target.getWorld().getBlockAt(12550820, 0, (int)target.getLocation().getZ()).getLocation());
+					sender.sendMessage(target.getName() + "'s compass has been set to the East");
+					return true;
 					
 				case "s":
 				case "south":
-					toSet = Direction.South;
-					break;
-				
+					target.setCompassTarget(target.getWorld().getBlockAt((int)target.getLocation().getX(), 0, 12550820).getLocation());
+					sender.sendMessage(target.getName() + "'s compass has been set to the South");
+					return true;
+					
 				case "w":
 				case "west":
-					toSet = Direction.West;
-					break;
+					target.setCompassTarget(target.getWorld().getBlockAt(-12550820, 0, (int)target.getLocation().getZ()).getLocation());
+					sender.sendMessage(target.getName() + "'s compass has been set to the West");
+					return true;
 				
+				case "bed":
+					if (target.getBedSpawnLocation() != null) {
+						target.setCompassTarget(target.getBedSpawnLocation());
+						sender.sendMessage(target.getName() + "'s compass has been set to your bed's location");
+						return true;
+					} else {
+						sender.sendMessage(target.getName() + " doesn't have a bed");
+						return false;
+					}
+					
 				case "r":
 				case "reset":
-					toSet = Direction.None;
+				case "default":
+					target.setCompassTarget(target.getWorld().getSpawnLocation());
+					sender.sendMessage(target.getName() + "'s compass has been set to the world's spawnpoint");
 					removeTrackerFromRequester(target);
-					break;
+					return true;
 					
 				default:
-					
-					break;
+					sender.sendMessage("Syntax error: \"" + args[1] + "\" is not a valid direction or command");
+					return false;
 			}
-			
-			if (toSet != null) {
-				setCompassToDirection(target, toSet);
-				return true;
-			} else {
-				sender.sendMessage("Syntax error: \"" + args[1] + "\" is not a valid direction or command");
-				return false;
-			}		
 		}
 		return false;
 	}
@@ -389,8 +396,8 @@ public final class Compass extends JavaPlugin implements Listener {
 		}
 	}
 	
-	/*// for a future release
-	@EventHandler
+	// for a future release
+	/*@EventHandler
 	public void onPlayerUse(PlayerInteractEvent e) {
 		Player p = e.getPlayer();
 		
@@ -399,14 +406,17 @@ public final class Compass extends JavaPlugin implements Listener {
 			return;
 		}
 		
+		float yaw = p.getLocation().getYaw() % 360.0f;
+		p.sendMessage(yaw + "");
+		
 		if (getMetadata(p, "poledirection", this) != null) {
 			// Tell what direction the player is facing
-			float yaw = p.getLocation().getYaw();
 			
-			p.sendMessage("You're currently facing " + whatDirection(yaw) + "(" + yaw + ")");
+			p.sendMessage("You're currently facing the " + whatDirection(yaw) + "(" + yaw + ")");
 		} else {
 			// Tell how far away in a certain direction the player from it's target is
 			
+			// TODO: FIX
 			Location pp = p.getLocation();
 			Location cp = p.getCompassTarget();
 			
@@ -416,7 +426,38 @@ public final class Compass extends JavaPlugin implements Listener {
 			double cx = cp.getX();
 			double cz = cp.getZ();
 			
-			double xd = Math.abs(px - cx);
+			// distances (delta) 
+			double xd = cx - px;
+			double zd = cz - pz;
+			
+			// distance (||delta||)
+			double d = Math.sqrt(Math.pow(xd, 2) + Math.pow(zd,  2));
+			
+			// absolute angle ignoring players rotation facing positive x-axis(east)(yaw = 270)
+			double angle = 0.0;//Math.toDegrees(Math.tanh(zd / xd));*/
+			
+			// TODO: For each case(xd > 0, zd > 0) seperate tanh parameters, initial angle, etc etc SO IT WORKS
+			
+			/*if (xd > 0.0) {
+				// target is in positive x(east)
+				angle = Math.toDegrees(Math.tanh(zd / xd)) + 270.0;
+			} else {
+				// target is in negative x(west)
+				angle = Math.toDegrees(Math.tanh(-zd / xd)) + 90.0;
+			}*/
+			
+			/*if (zd > 0.0) {
+				// target is in positive z(south)
+			} else {
+				// target is in negative z(north)
+			}*/
+			
+			
+			
+			//p.sendMessage(ChatColor.GOLD + "Target is ~" + Math.round(d) + " blocks in the " + whatDirection((float)angle) + "(" + angle + ")");
+			
+			
+			/*double xd = Math.abs(px - cx);
 			double zd = Math.abs(pz - cz);
 			
 			double d = Math.sqrt(Math.pow(xd, 2) + Math.pow(zd, 2));
@@ -434,21 +475,20 @@ public final class Compass extends JavaPlugin implements Listener {
 				// target is relatively south
 			}
 			
+			double angle = Math.tanh(zd / xd);
+			
 			
 			// directions
 			p.sendMessage(ChatColor.GOLD + "UR " + distance + " BLACKS AWEAY FROM TARGET");
 			p.sendMessage(ChatColor.GOLD + "TARGET IS " + Math.round(xd) + " " + (px > cx ? "west" : "east") + " of you");
-			p.sendMessage(ChatColor.GOLD + "TARGET IS " + Math.round(zd) + " " + (pz > cz ? "north" : "south") + " of you");
-		}		
-	}
+			p.sendMessage(ChatColor.GOLD + "TARGET IS " + Math.round(zd) + " " + (pz > cz ? "north" : "south") + " of you");*/
+			
+	//	}		
+	//}
 	
-	private String whatDirection(float angle) {
-		String result = "";
+	/*private String whatDirection(float angle) {
 		
-		// TODO: Fix neg values
-		angle = Math.abs(angle);
-		
-		if (angle < 45.0f || angle > 315.0f) {
+		/*if (angle < 45.0f || angle > 315.0f) {
 			return "south";
 		} else if (angle < 135.0f) {
 			// west
@@ -459,41 +499,30 @@ public final class Compass extends JavaPlugin implements Listener {
 		} else if (angle < 315.0f) {
 			//east
 			return "east";
+		}*/
+		/*if (angle < 22.5f || angle > 337.5f) {
+			return "south";
+		} else if (angle < 67.5f) {
+			return "south-west";
+		} else if (angle < 112.5f) {
+			return "west";
+		} else if (angle < 157.5f) {
+			return "north-west";
+		} else if (angle < 202.5f) {
+			return "north";
+		} else if (angle < 247.5f) {
+			return "north-east";
+		} else if (angle < 292.5f) {
+			return "east";
+		} else if (angle < 337.5f) {
+			return "south-east";
 		}
 
-		return result;
+		return "xD";
 	}*/
 	
-	private void setCompassToDirection(Player p, Direction direction) {
-		Location loc = p.getLocation();
-		
-		switch (direction) {
-			case North:
-				p.setCompassTarget(p.getWorld().getBlockAt((int)loc.getX(), 0, -12550820).getLocation());
-				break;
-			case East:
-				p.setCompassTarget(p.getWorld().getBlockAt(12550820, 0, (int)loc.getZ()).getLocation());
-				break;
-			case South:
-				p.setCompassTarget(p.getWorld().getBlockAt((int)loc.getX(), 0, 12550820).getLocation());
-				break;
-			case West:
-				p.setCompassTarget(p.getWorld().getBlockAt(-12550820, 0, (int)loc.getZ()).getLocation());
-				break;
-			default:
-				if (p.getBedSpawnLocation() != null) {
-					p.setCompassTarget(p.getBedSpawnLocation());
-				} else {
-					p.setCompassTarget(p.getWorld().getSpawnLocation());
-				}
-				//removeMetadata(p, "poledirection", this);
-				return;
-		}
-		
-		//setMetadata(p, "poledirection", true, this);
-	}
 	
-	private enum Direction {
-		None, North, East, South, West;
-	}
+	/*private enum Direction {
+		None, North, East, South, West, Default, Bed;
+	}*/
 }
