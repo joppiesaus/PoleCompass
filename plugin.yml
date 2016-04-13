@@ -1,7 +1,7 @@
 name: PoleCompass
 main: nl.function1.polepass.Compass
 description: A plugin where you can modify your compass!
-version: 2.0.1
+version: 2.0.4
 author: joppiesaus
 website: http://dev.bukkit.org/bukkit-plugins/joppiesaus-pass/
 

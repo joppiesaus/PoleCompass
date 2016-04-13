@@ -136,6 +136,7 @@ public final class Compass extends JavaPlugin implements Listener {
 					p.sendMessage(ChatColor.GOLD + "/compass follow <player>" + ChatColor.GRAY + " - sets your compass direction to someone else's" +
 							" position. Keeps updating.");
 					//p.sendMessage(ChatColor.GOLD + "/compass about" + ChatColor.GRAY + " - views the info of the plugin.");
+					p.sendMessage(ChatColor.GOLD + "/compass bed" + ChatColor.GRAY + " - sets your compass to your bed's location");
 					p.sendMessage(ChatColor.GOLD + "To make your compass normal again, use /compass reset.");
 					p.sendMessage(ChatColor.GOLD + "To modify someone else's compass, use /setplayercompass and then anything listed here.");
 					return true;
